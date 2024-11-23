@@ -10,20 +10,26 @@ import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import models.House;
+import services.LoginService;
 
 public class HouseView {
 
-    private HouseController houseController;
-    private TableView<House> houseTable;
+    private final HouseController houseController;
+    private final TableView<House> houseTable;
+    private final Button navigationButton;
+    private final ObservableList<House> allHouses;
+    private final String currentUserRole;
+    private final Button logoutButton; // Logout button
+    private final Stage primaryStage; // Reference to primary stage
     private VBox root;
-    private Button navigationButton;
-    private ObservableList<House> allHouses;
 
-    public HouseView(HouseController controller) {
+    public HouseView(HouseController controller, String role, Stage primaryStage) {
         this.houseController = controller;
         this.houseTable = new TableView<>();
         this.navigationButton = new Button("Go to Tenant View");
-
+        this.currentUserRole = role;
+        this.logoutButton = new Button("Logout"); // Initialize logout button
+        this.primaryStage = primaryStage; // Set the primary stage reference
         // Fetch all houses from the controller initially
         this.allHouses = FXCollections.observableArrayList(houseController.getAllHouses());
 
@@ -76,11 +82,22 @@ public class HouseView {
         Button deleteButton = new Button("Delete House");
         Button clearSelectionButton = new Button("Clear Selection");
 
-        // Initially, only the Add button is enabled
+        // Set roles: Enable/disable buttons based on the current role
+        boolean isLandlord = "LANDLORD".equalsIgnoreCase(currentUserRole);
         addButton.setDisable(false);
         updateButton.setDisable(true);
         deleteButton.setDisable(true);
-        clearSelectionButton.setDisable(true);
+        clearSelectionButton.setDisable(true); // Initially disabled
+
+        if (!isLandlord) {
+            nameField.setVisible(false);
+            addressField.setVisible(false);
+            rentPriceField.setVisible(false);
+            isRentedCheckBox.setVisible(false);
+            addButton.setDisable(true);
+            updateButton.setDisable(true);
+            deleteButton.setDisable(true);
+        }
 
         // Add house logic
         addButton.setOnAction(event -> {
@@ -90,18 +107,13 @@ public class HouseView {
                 double rentPrice = Double.parseDouble(rentPriceField.getText());
                 boolean isRented = isRentedCheckBox.isSelected();
 
-                // Call the controller to add a new house
                 String result = houseController.addHouse(name, address, rentPrice, isRented);
 
                 if (result.contains("Error")) {
                     showError(result); // Show error if the name is not unique
                 } else {
-                    // Refresh the table to show the new house
-                    refreshTable();
-
-                    // Clear input fields
+                    refreshTable(); // Refresh the table to show the new house
                     clearFields(nameField, addressField, rentPriceField, isRentedCheckBox);
-
                     showInfo(result); // Show success message
                 }
             } catch (NumberFormatException e) {
@@ -119,18 +131,13 @@ public class HouseView {
                     double rentPrice = Double.parseDouble(rentPriceField.getText());
                     boolean isRented = isRentedCheckBox.isSelected();
 
-                    // Call the controller to update the house
                     String result = houseController.updateHouse(selectedHouse.getId(), name, address, rentPrice, isRented);
 
                     if (result.contains("Error")) {
                         showError(result); // Show error if the name is not unique
                     } else {
-                        // Refresh the table
                         refreshTable();
-
-                        // Clear input fields
                         clearFields(nameField, addressField, rentPriceField, isRentedCheckBox);
-
                         showInfo(result); // Show success message
                     }
                 } catch (NumberFormatException e) {
@@ -151,15 +158,9 @@ public class HouseView {
                 confirmationAlert.setContentText("Are you sure you want to delete this house?");
                 confirmationAlert.showAndWait().ifPresent(response -> {
                     if (response == ButtonType.OK) {
-                        // Call the controller to delete the house
                         houseController.deleteHouse(selectedHouse.getId());
-
-                        // Refresh the table
                         refreshTable();
-
-                        // Clear input fields
                         clearFields(nameField, addressField, rentPriceField, isRentedCheckBox);
-
                         showInfo("House deleted successfully.");
                     }
                 });
@@ -172,28 +173,20 @@ public class HouseView {
         clearSelectionButton.setOnAction(event -> {
             houseTable.getSelectionModel().clearSelection();
             clearFields(nameField, addressField, rentPriceField, isRentedCheckBox);
-
-            addButton.setDisable(false);
-            updateButton.setDisable(true);
-            deleteButton.setDisable(true);
-            clearSelectionButton.setDisable(true);
         });
 
-        // Add a listener to the TableView selection
+        // Add listener for table selection
         houseTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
-            if (newSelection != null) {
-                // Populate fields with the selected house data
+            if (newSelection != null && isLandlord) {
                 nameField.setText(newSelection.getName());
                 addressField.setText(newSelection.getAddress());
                 rentPriceField.setText(String.valueOf(newSelection.getRentPrice()));
                 isRentedCheckBox.setSelected(newSelection.isRented());
-
-                // Enable Update and Delete buttons, disable Add button
-                addButton.setDisable(true);
                 updateButton.setDisable(false);
                 deleteButton.setDisable(false);
+                addButton.setDisable(true);
                 clearSelectionButton.setDisable(false);
-            } else {
+            } else if (newSelection == null && isLandlord) {
                 // Clear fields and reset buttons
                 clearFields(nameField, addressField, rentPriceField, isRentedCheckBox);
 
@@ -203,35 +196,33 @@ public class HouseView {
                 clearSelectionButton.setDisable(true);
             }
         });
+        // Logout button logic
+        logoutButton.setOnAction(event -> {
+            LoginService loginService = new LoginService(); // Create a new LoginService
+            LoginView loginView = new LoginView(loginService, primaryStage);
 
+            Scene loginScene = loginView.getLoginScene();
+            primaryStage.setScene(loginScene);
+            primaryStage.setTitle("Login");
+        });
         // Set up the root layout
-        root = new VBox(10, rentedFilter, houseTable, nameField, addressField, rentPriceField, isRentedCheckBox, addButton, updateButton, deleteButton, clearSelectionButton, navigationButton);
+        root = new VBox(10, rentedFilter, houseTable, nameField, addressField, rentPriceField, isRentedCheckBox, addButton, updateButton, deleteButton, clearSelectionButton, navigationButton, logoutButton);
     }
 
-    // Get the main view layout (VBox)
     public VBox getView() {
         return root;
     }
 
-    // Get the navigation button for switching between views
-    public Button getNavigationBar() {
-        return navigationButton;
-    }
-
-    // Refresh the table after adding, updating, or deleting houses
     private void refreshTable() {
         allHouses.setAll(houseController.getAllHouses());
         applyFilters("All");
     }
 
-    // Apply filters to the table based on rented status
     private void applyFilters(String rentedStatus) {
         ObservableList<House> filteredHouses = FXCollections.observableArrayList();
 
         for (House house : allHouses) {
-            if ("All".equals(rentedStatus) ||
-                    ("Rented".equals(rentedStatus) && house.isRented()) ||
-                    ("Not Rented".equals(rentedStatus) && !house.isRented())) {
+            if ("All".equals(rentedStatus) || ("Rented".equals(rentedStatus) && house.isRented()) || ("Not Rented".equals(rentedStatus) && !house.isRented())) {
                 filteredHouses.add(house);
             }
         }
@@ -239,7 +230,6 @@ public class HouseView {
         houseTable.setItems(filteredHouses);
     }
 
-    // Clear the input fields
     private void clearFields(TextField nameField, TextField addressField, TextField rentPriceField, CheckBox isRentedCheckBox) {
         nameField.clear();
         addressField.clear();
@@ -247,7 +237,6 @@ public class HouseView {
         isRentedCheckBox.setSelected(false);
     }
 
-    // Show an error message
     private void showError(String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setHeaderText("Error");
@@ -255,7 +244,6 @@ public class HouseView {
         alert.showAndWait();
     }
 
-    // Show an info message
     private void showInfo(String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setHeaderText("Information");

@@ -2,17 +2,24 @@ package controllers;
 
 import models.House;
 import services.HouseService;
+import models.User;
+import models.Landlord;
+import models.Tenant;
 
 import java.sql.SQLException;
 import java.util.List;
 
 public class HouseController {
-    private HouseService houseService;
+    private final HouseService houseService;
+    private final User currentUser; // This will hold the current logged-in user
 
-    public HouseController() {
-        this.houseService = new HouseService();
+    // Constructor to initialize the HouseService and assign the current user
+    public HouseController(HouseService houseService, User currentUser) {
+        this.houseService = houseService;
+        this.currentUser = currentUser;
     }
 
+    // Get all houses (both tenants and landlords can view)
     public List<House> getAllHouses() {
         try {
             return houseService.getAllHouses();
@@ -22,7 +29,12 @@ public class HouseController {
         }
     }
 
+    // Add a house (only landlords can add houses)
     public String addHouse(String name, String address, double rentPrice, boolean isRented) {
+        if (!(currentUser instanceof Landlord)) {
+            return "Error: Only landlords can add houses.";
+        }
+
         try {
             if (houseService.isNameUnique(name)) {
                 House house = new House(0, name, address, rentPrice, isRented);
@@ -37,7 +49,12 @@ public class HouseController {
         }
     }
 
+    // Update a house (only landlords can update houses)
     public String updateHouse(int id, String name, String address, double rentPrice, boolean isRented) {
+        if (!(currentUser instanceof Landlord)) {
+            return "Error: Only landlords can update houses.";
+        }
+
         try {
             if (houseService.isNameUniqueForUpdate(id, name)) {
                 House house = new House(id, name, address, rentPrice, isRented);
@@ -52,11 +69,18 @@ public class HouseController {
         }
     }
 
-    public void deleteHouse(int houseId) {
+    // Delete a house (only landlords can delete houses)
+    public String deleteHouse(int houseId) {
+        if (!(currentUser instanceof Landlord)) {
+            return "Error: Only landlords can delete houses.";
+        }
+
         try {
             houseService.deleteHouse(houseId);
+            return "House deleted successfully.";
         } catch (SQLException e) {
             e.printStackTrace();
+            return "Error: Unable to delete house.";
         }
     }
 }
