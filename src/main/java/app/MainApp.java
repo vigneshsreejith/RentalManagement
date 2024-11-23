@@ -33,18 +33,19 @@ public class MainApp extends Application {
             PaymentController paymentController = new PaymentController();
             PaymentView paymentView = new PaymentView(paymentController);
 
-             //Default to HouseView
+            // Default to HouseView
             root.setCenter(houseView.getView());
 
             // Set up navigation between views
-            houseView.getNavigationBar().setOnAction(e -> root.setCenter(houseView.getView()));
-            tenantView.getNavigationBar().setOnAction(e -> root.setCenter(tenantView.getView()));
-            maintenanceView.getNavigationBar().setOnAction(e -> root.setCenter(maintenanceView.getView()));
-            paymentView.getNavigationBar().setOnAction(e -> root.setCenter(paymentView.getView()));
+            houseView.getNavigationBar().setOnAction(e -> root.setCenter(tenantView.getView()));
+            tenantView.getNavigationBar().setOnAction(e -> root.setCenter(maintenanceView.getView()));
+            maintenanceView.getNavigationBar().setOnAction(e -> root.setCenter(paymentView.getView()));
+            paymentView.getNavigationBar().setOnAction(e -> root.setCenter(houseView.getView()));
 
             primaryStage.setScene(mainScene);
             primaryStage.show();
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             e.printStackTrace();
         }
     }

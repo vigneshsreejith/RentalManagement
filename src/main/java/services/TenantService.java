@@ -23,7 +23,7 @@ public class TenantService {
                 tenants.add(new Tenant(
                         resultSet.getInt("id"),
                         resultSet.getString("name"),
-                        resultSet.getString("contact_info")
+                        resultSet.getString("contactInfo")
                 ));
             }
         } catch (SQLException e) {
@@ -33,7 +33,7 @@ public class TenantService {
     }
 
     public void addTenant(String name, String contactInfo) {
-        String query = "INSERT INTO tenants (name, contact_info) VALUES (?, ?)";
+        String query = "INSERT INTO tenants (name, contactInfo) VALUES (?, ?)";
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setString(1, name);
             preparedStatement.setString(2, contactInfo);

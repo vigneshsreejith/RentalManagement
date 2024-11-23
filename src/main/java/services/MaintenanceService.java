@@ -22,7 +22,7 @@ public class MaintenanceService {
             while (resultSet.next()) {
                 requests.add(new MaintenanceRequest(
                         resultSet.getInt("id"),
-                        resultSet.getInt("house_id"),
+                        resultSet.getInt("houseId"),
                         resultSet.getString("description"),
                         resultSet.getString("status")
                 ));
@@ -34,7 +34,7 @@ public class MaintenanceService {
     }
 
     public void addRequest(int houseId, String description, String status) {
-        String query = "INSERT INTO maintenance_requests (house_id, description, status) VALUES (?, ?, ?)";
+        String query = "INSERT INTO maintenance_requests (houseId, description, status) VALUES (?, ?, ?)";
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setInt(1, houseId);
             preparedStatement.setString(2, description);
