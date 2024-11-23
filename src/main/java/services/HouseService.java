@@ -17,7 +17,7 @@ public class HouseService {
             while (rs.next()) {
                 houses.add(new House(
                         rs.getInt("id"),
-                        rs.getString("name"),  // Fetch `name`
+                        rs.getString("name"),
                         rs.getString("address"),
                         rs.getDouble("rentPrice"),
                         rs.getBoolean("isRented")
@@ -31,7 +31,7 @@ public class HouseService {
         String query = "INSERT INTO houses (name, address, rentPrice, isRented) VALUES (?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
-            pstmt.setString(1, house.getName());  // Insert `name`
+            pstmt.setString(1, house.getName());
             pstmt.setString(2, house.getAddress());
             pstmt.setDouble(3, house.getRentPrice());
             pstmt.setBoolean(4, house.isRented());
@@ -43,7 +43,7 @@ public class HouseService {
         String query = "UPDATE houses SET name = ?, address = ?, rentPrice = ?, isRented = ? WHERE id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
-            pstmt.setString(1, house.getName());  // Update `name`
+            pstmt.setString(1, house.getName());
             pstmt.setString(2, house.getAddress());
             pstmt.setDouble(3, house.getRentPrice());
             pstmt.setBoolean(4, house.isRented());
@@ -59,5 +59,32 @@ public class HouseService {
             pstmt.setInt(1, houseId);
             pstmt.executeUpdate();
         }
+    }
+
+    public boolean isNameUnique(String name) throws SQLException {
+        String query = "SELECT COUNT(*) FROM houses WHERE name = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, name);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) == 0; // True if no house exists with the same name
+            }
+        }
+        return false;
+    }
+
+    public boolean isNameUniqueForUpdate(int id, String name) throws SQLException {
+        String query = "SELECT COUNT(*) FROM houses WHERE name = ? AND id != ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, name);
+            pstmt.setInt(2, id);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) == 0; // True if no house with the same name but different ID exists
+            }
+        }
+        return false;
     }
 }

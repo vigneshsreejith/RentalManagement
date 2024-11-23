@@ -73,13 +73,19 @@ public class HouseView {
                 boolean isRented = isRentedCheckBox.isSelected();
 
                 // Call the controller to add a new house
-                houseController.addHouse(name, address, rentPrice, isRented);
+                String result = houseController.addHouse(name, address, rentPrice, isRented);
 
-                // Refresh the table to show the new house
-                refreshTable();
+                if (result.contains("Error")) {
+                    showError(result); // Show error if the name is not unique
+                } else {
+                    // Refresh the table to show the new house
+                    refreshTable();
 
-                // Clear input fields
-                clearFields(nameField, addressField, rentPriceField, isRentedCheckBox);
+                    // Clear input fields
+                    clearFields(nameField, addressField, rentPriceField, isRentedCheckBox);
+
+                    showInfo(result); // Show success message
+                }
             } catch (NumberFormatException e) {
                 showError("Invalid input. Please enter a valid rent price.");
             }
@@ -94,14 +100,20 @@ public class HouseView {
                     double rentPrice = Double.parseDouble(rentPriceField.getText());
                     boolean isRented = isRentedCheckBox.isSelected();
 
-                    // Update house details
-                    houseController.updateHouse(selectedHouse.getId(), name, address, rentPrice, isRented);
+                    // Call the controller to update the house
+                    String result = houseController.updateHouse(selectedHouse.getId(), name, address, rentPrice, isRented);
 
-                    // Refresh the table
-                    refreshTable();
+                    if (result.contains("Error")) {
+                        showError(result); // Show error if the name is not unique
+                    } else {
+                        // Refresh the table
+                        refreshTable();
 
-                    // Clear input fields
-                    clearFields(nameField, addressField, rentPriceField, isRentedCheckBox);
+                        // Clear input fields
+                        clearFields(nameField, addressField, rentPriceField, isRentedCheckBox);
+
+                        showInfo(result); // Show success message
+                    }
                 } catch (NumberFormatException e) {
                     showError("Invalid input. Please enter a valid rent price.");
                 }
@@ -151,6 +163,15 @@ public class HouseView {
     private void showError(String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Error");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    // Show an info alert
+    private void showInfo(String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Information");
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();

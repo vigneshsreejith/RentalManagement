@@ -22,21 +22,33 @@ public class HouseController {
         }
     }
 
-    public void addHouse(String name, String address, double rentPrice, boolean isRented) {
+    public String addHouse(String name, String address, double rentPrice, boolean isRented) {
         try {
-            House house = new House(0, name, address, rentPrice, isRented);
-            houseService.addHouse(house);
+            if (houseService.isNameUnique(name)) {
+                House house = new House(0, name, address, rentPrice, isRented);
+                houseService.addHouse(house);
+                return "House added successfully.";
+            } else {
+                return "Error: House name must be unique.";
+            }
         } catch (SQLException e) {
             e.printStackTrace();
+            return "Error: Unable to add house.";
         }
     }
 
-    public void updateHouse(int id, String name, String address, double rentPrice, boolean isRented) {
+    public String updateHouse(int id, String name, String address, double rentPrice, boolean isRented) {
         try {
-            House house = new House(id, name, address, rentPrice, isRented);
-            houseService.updateHouse(house);
+            if (houseService.isNameUniqueForUpdate(id, name)) {
+                House house = new House(id, name, address, rentPrice, isRented);
+                houseService.updateHouse(house);
+                return "House updated successfully.";
+            } else {
+                return "Error: House name must be unique.";
+            }
         } catch (SQLException e) {
             e.printStackTrace();
+            return "Error: Unable to update house.";
         }
     }
 
