@@ -61,9 +61,10 @@ public class HouseView {
 
         CheckBox isRentedCheckBox = new CheckBox("Is Rented");
 
-        // Buttons for adding and updating a house
+        // Buttons for adding, updating, and deleting a house
         Button addButton = new Button("Add House");
         Button updateButton = new Button("Update House");
+        Button deleteButton = new Button("Delete House");
 
         addButton.setOnAction(event -> {
             try {
@@ -122,6 +123,29 @@ public class HouseView {
             }
         });
 
+        deleteButton.setOnAction(event -> {
+            House selectedHouse = houseTable.getSelectionModel().getSelectedItem();
+            if (selectedHouse != null) {
+                Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION);
+                confirmationAlert.setTitle("Delete Confirmation");
+                confirmationAlert.setHeaderText(null);
+                confirmationAlert.setContentText("Are you sure you want to delete this house?");
+                confirmationAlert.showAndWait().ifPresent(response -> {
+                    if (response == ButtonType.OK) {
+                        // Call the controller to delete the house
+                        houseController.deleteHouse(selectedHouse.getId());
+
+                        // Refresh the table
+                        refreshTable();
+
+                        showInfo("House deleted successfully.");
+                    }
+                });
+            } else {
+                showError("No house selected. Please select a house to delete.");
+            }
+        });
+
         // Populate fields when a row is selected
         houseTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             if (newSelection != null) {
@@ -133,7 +157,7 @@ public class HouseView {
         });
 
         // Set up the root layout
-        root = new VBox(10, houseTable, nameField, addressField, rentPriceField, isRentedCheckBox, addButton, updateButton, navigationButton);
+        root = new VBox(10, houseTable, nameField, addressField, rentPriceField, isRentedCheckBox, addButton, updateButton, deleteButton, navigationButton);
     }
 
     // Get the main view layout (VBox)
@@ -146,7 +170,7 @@ public class HouseView {
         return navigationButton;
     }
 
-    // Refresh the table after adding or updating houses
+    // Refresh the table after adding, updating, or deleting houses
     private void refreshTable() {
         houseTable.setItems(FXCollections.observableArrayList(houseController.getAllHouses()));
     }
