@@ -22,17 +22,18 @@ public class HouseController {
         }
     }
 
-    public void addHouse(String address, double rentPrice, boolean isRented) {
+    public void addHouse(String name, String address, double rentPrice, boolean isRented) {
         try {
-            House house = new House(0, address, rentPrice, isRented);
+            House house = new House(0, name, address, rentPrice, isRented);
             houseService.addHouse(house);
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    public void updateHouse(House house) {
+    public void updateHouse(int id, String name, String address, double rentPrice, boolean isRented) {
         try {
+            House house = new House(id, name, address, rentPrice, isRented);
             houseService.updateHouse(house);
         } catch (SQLException e) {
             e.printStackTrace();

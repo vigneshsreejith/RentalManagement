@@ -17,6 +17,7 @@ public class HouseService {
             while (rs.next()) {
                 houses.add(new House(
                         rs.getInt("id"),
+                        rs.getString("name"),  // Fetch `name`
                         rs.getString("address"),
                         rs.getDouble("rentPrice"),
                         rs.getBoolean("isRented")
@@ -27,24 +28,26 @@ public class HouseService {
     }
 
     public void addHouse(House house) throws SQLException {
-        String query = "INSERT INTO houses (address, rentPrice, isRented) VALUES (?, ?, ?)";
+        String query = "INSERT INTO houses (name, address, rentPrice, isRented) VALUES (?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
-            pstmt.setString(1, house.getAddress());
-            pstmt.setDouble(2, house.getRentPrice());
-            pstmt.setBoolean(3, house.isRented());
+            pstmt.setString(1, house.getName());  // Insert `name`
+            pstmt.setString(2, house.getAddress());
+            pstmt.setDouble(3, house.getRentPrice());
+            pstmt.setBoolean(4, house.isRented());
             pstmt.executeUpdate();
         }
     }
 
     public void updateHouse(House house) throws SQLException {
-        String query = "UPDATE houses SET address = ?, rentPrice = ?, isRented = ? WHERE id = ?";
+        String query = "UPDATE houses SET name = ?, address = ?, rentPrice = ?, isRented = ? WHERE id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
-            pstmt.setString(1, house.getAddress());
-            pstmt.setDouble(2, house.getRentPrice());
-            pstmt.setBoolean(3, house.isRented());
-            pstmt.setInt(4, house.getId());
+            pstmt.setString(1, house.getName());  // Update `name`
+            pstmt.setString(2, house.getAddress());
+            pstmt.setDouble(3, house.getRentPrice());
+            pstmt.setBoolean(4, house.isRented());
+            pstmt.setInt(5, house.getId());
             pstmt.executeUpdate();
         }
     }

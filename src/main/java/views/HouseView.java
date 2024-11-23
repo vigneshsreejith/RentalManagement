@@ -31,6 +31,9 @@ public class HouseView {
         ObservableList<House> houseData = FXCollections.observableArrayList(houseController.getAllHouses());
 
         // Define columns for the TableView
+        TableColumn<House, String> nameColumn = new TableColumn<>("Name");
+        nameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getName()));
+
         TableColumn<House, String> addressColumn = new TableColumn<>("Address");
         addressColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getAddress()));
 
@@ -41,17 +44,84 @@ public class HouseView {
         isRentedColumn.setCellValueFactory(cellData -> new SimpleObjectProperty<>(cellData.getValue().isRented()));
 
         // Add columns to the TableView
-        houseTable.getColumns().addAll(addressColumn, rentPriceColumn, isRentedColumn);
+        houseTable.getColumns().addAll(nameColumn, addressColumn, rentPriceColumn, isRentedColumn);
 
         // Set data for the table
         houseTable.setItems(houseData);
 
-        // Button to add a house
+        // Input fields for adding/updating a house
+        TextField nameField = new TextField();
+        nameField.setPromptText("Name");
+
+        TextField addressField = new TextField();
+        addressField.setPromptText("Address");
+
+        TextField rentPriceField = new TextField();
+        rentPriceField.setPromptText("Rent Price");
+
+        CheckBox isRentedCheckBox = new CheckBox("Is Rented");
+
+        // Buttons for adding and updating a house
         Button addButton = new Button("Add House");
-        addButton.setOnAction(event -> houseController.addHouse("123 Main St", 1000, false));
+        Button updateButton = new Button("Update House");
+
+        addButton.setOnAction(event -> {
+            try {
+                String name = nameField.getText();
+                String address = addressField.getText();
+                double rentPrice = Double.parseDouble(rentPriceField.getText());
+                boolean isRented = isRentedCheckBox.isSelected();
+
+                // Call the controller to add a new house
+                houseController.addHouse(name, address, rentPrice, isRented);
+
+                // Refresh the table to show the new house
+                refreshTable();
+
+                // Clear input fields
+                clearFields(nameField, addressField, rentPriceField, isRentedCheckBox);
+            } catch (NumberFormatException e) {
+                showError("Invalid input. Please enter a valid rent price.");
+            }
+        });
+
+        updateButton.setOnAction(event -> {
+            House selectedHouse = houseTable.getSelectionModel().getSelectedItem();
+            if (selectedHouse != null) {
+                try {
+                    String name = nameField.getText();
+                    String address = addressField.getText();
+                    double rentPrice = Double.parseDouble(rentPriceField.getText());
+                    boolean isRented = isRentedCheckBox.isSelected();
+
+                    // Update house details
+                    houseController.updateHouse(selectedHouse.getId(), name, address, rentPrice, isRented);
+
+                    // Refresh the table
+                    refreshTable();
+
+                    // Clear input fields
+                    clearFields(nameField, addressField, rentPriceField, isRentedCheckBox);
+                } catch (NumberFormatException e) {
+                    showError("Invalid input. Please enter a valid rent price.");
+                }
+            } else {
+                showError("No house selected. Please select a house to update.");
+            }
+        });
+
+        // Populate fields when a row is selected
+        houseTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            if (newSelection != null) {
+                nameField.setText(newSelection.getName());
+                addressField.setText(newSelection.getAddress());
+                rentPriceField.setText(String.valueOf(newSelection.getRentPrice()));
+                isRentedCheckBox.setSelected(newSelection.isRented());
+            }
+        });
 
         // Set up the root layout
-        root = new VBox(10, houseTable, addButton, navigationButton);
+        root = new VBox(10, houseTable, nameField, addressField, rentPriceField, isRentedCheckBox, addButton, updateButton, navigationButton);
     }
 
     // Get the main view layout (VBox)
@@ -64,9 +134,31 @@ public class HouseView {
         return navigationButton;
     }
 
+    // Refresh the table after adding or updating houses
+    private void refreshTable() {
+        houseTable.setItems(FXCollections.observableArrayList(houseController.getAllHouses()));
+    }
+
+    // Clear input fields
+    private void clearFields(TextField nameField, TextField addressField, TextField rentPriceField, CheckBox isRentedCheckBox) {
+        nameField.clear();
+        addressField.clear();
+        rentPriceField.clear();
+        isRentedCheckBox.setSelected(false);
+    }
+
+    // Show an error alert
+    private void showError(String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Error");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    // Start method to show the scene (not used in RentalManagementApp but kept for standalone purposes)
     public void start(Stage stage) {
-        // Setup scene
-        Scene scene = new Scene(getView(), 600, 400);
+        Scene scene = new Scene(getView(), 600, 500);
         stage.setScene(scene);
         stage.setTitle("Manage Houses");
         stage.show();
