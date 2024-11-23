@@ -61,11 +61,19 @@ public class HouseView {
 
         CheckBox isRentedCheckBox = new CheckBox("Is Rented");
 
-        // Buttons for adding, updating, and deleting a house
+        // Buttons for adding, updating, deleting a house, and clearing selection
         Button addButton = new Button("Add House");
         Button updateButton = new Button("Update House");
         Button deleteButton = new Button("Delete House");
+        Button clearSelectionButton = new Button("Clear Selection");
 
+        // Initially, only the Add button is enabled
+        addButton.setDisable(false);
+        updateButton.setDisable(true);
+        deleteButton.setDisable(true);
+        clearSelectionButton.setDisable(true);
+
+        // Add house logic
         addButton.setOnAction(event -> {
             try {
                 String name = nameField.getText();
@@ -92,6 +100,7 @@ public class HouseView {
             }
         });
 
+        // Update house logic
         updateButton.setOnAction(event -> {
             House selectedHouse = houseTable.getSelectionModel().getSelectedItem();
             if (selectedHouse != null) {
@@ -123,6 +132,7 @@ public class HouseView {
             }
         });
 
+        // Delete house logic
         deleteButton.setOnAction(event -> {
             House selectedHouse = houseTable.getSelectionModel().getSelectedItem();
             if (selectedHouse != null) {
@@ -138,6 +148,9 @@ public class HouseView {
                         // Refresh the table
                         refreshTable();
 
+                        // Clear input fields
+                        clearFields(nameField, addressField, rentPriceField, isRentedCheckBox);
+
                         showInfo("House deleted successfully.");
                     }
                 });
@@ -146,18 +159,44 @@ public class HouseView {
             }
         });
 
-        // Populate fields when a row is selected
+        // Clear selection logic
+        clearSelectionButton.setOnAction(event -> {
+            houseTable.getSelectionModel().clearSelection();
+            clearFields(nameField, addressField, rentPriceField, isRentedCheckBox);
+
+            addButton.setDisable(false);
+            updateButton.setDisable(true);
+            deleteButton.setDisable(true);
+            clearSelectionButton.setDisable(true);
+        });
+
+        // Add a listener to the TableView selection
         houseTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             if (newSelection != null) {
+                // Populate fields with the selected house data
                 nameField.setText(newSelection.getName());
                 addressField.setText(newSelection.getAddress());
                 rentPriceField.setText(String.valueOf(newSelection.getRentPrice()));
                 isRentedCheckBox.setSelected(newSelection.isRented());
+
+                // Enable Update and Delete buttons, disable Add button
+                addButton.setDisable(true);
+                updateButton.setDisable(false);
+                deleteButton.setDisable(false);
+                clearSelectionButton.setDisable(false);
+            } else {
+                // Clear fields and reset buttons
+                clearFields(nameField, addressField, rentPriceField, isRentedCheckBox);
+
+                addButton.setDisable(false);
+                updateButton.setDisable(true);
+                deleteButton.setDisable(true);
+                clearSelectionButton.setDisable(true);
             }
         });
 
         // Set up the root layout
-        root = new VBox(10, houseTable, nameField, addressField, rentPriceField, isRentedCheckBox, addButton, updateButton, deleteButton, navigationButton);
+        root = new VBox(10, houseTable, nameField, addressField, rentPriceField, isRentedCheckBox, addButton, updateButton, deleteButton, clearSelectionButton, navigationButton);
     }
 
     // Get the main view layout (VBox)
@@ -199,13 +238,5 @@ public class HouseView {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
-    }
-
-    // Start method to show the scene (not used in RentalManagementApp but kept for standalone purposes)
-    public void start(Stage stage) {
-        Scene scene = new Scene(getView(), 600, 500);
-        stage.setScene(scene);
-        stage.setTitle("Manage Houses");
-        stage.show();
     }
 }
