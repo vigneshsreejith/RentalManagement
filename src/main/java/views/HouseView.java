@@ -17,18 +17,26 @@ public class HouseView {
     private TableView<House> houseTable;
     private VBox root;
     private Button navigationButton;
+    private ObservableList<House> allHouses;
 
     public HouseView(HouseController controller) {
         this.houseController = controller;
         this.houseTable = new TableView<>();
         this.navigationButton = new Button("Go to Tenant View");
 
+        // Fetch all houses from the controller initially
+        this.allHouses = FXCollections.observableArrayList(houseController.getAllHouses());
+
         setupTable();
     }
 
     private void setupTable() {
-        // Get data from the controller
-        ObservableList<House> houseData = FXCollections.observableArrayList(houseController.getAllHouses());
+        // Create filter dropdown for rented status
+        ChoiceBox<String> rentedFilter = new ChoiceBox<>();
+        rentedFilter.getItems().addAll("All", "Rented", "Not Rented");
+        rentedFilter.setValue("All"); // Default selection
+
+        rentedFilter.setOnAction(event -> applyFilters(rentedFilter.getValue()));
 
         // Define columns for the TableView
         TableColumn<House, String> nameColumn = new TableColumn<>("Name");
@@ -39,6 +47,7 @@ public class HouseView {
 
         TableColumn<House, Double> rentPriceColumn = new TableColumn<>("Rent Price");
         rentPriceColumn.setCellValueFactory(cellData -> new SimpleObjectProperty<>(cellData.getValue().getRentPrice()));
+        rentPriceColumn.setSortable(true); // Enable sorting on the Rent Price column
 
         TableColumn<House, Boolean> isRentedColumn = new TableColumn<>("Rented");
         isRentedColumn.setCellValueFactory(cellData -> new SimpleObjectProperty<>(cellData.getValue().isRented()));
@@ -47,7 +56,7 @@ public class HouseView {
         houseTable.getColumns().addAll(nameColumn, addressColumn, rentPriceColumn, isRentedColumn);
 
         // Set data for the table
-        houseTable.setItems(houseData);
+        houseTable.setItems(allHouses);
 
         // Input fields for adding/updating a house
         TextField nameField = new TextField();
@@ -196,7 +205,7 @@ public class HouseView {
         });
 
         // Set up the root layout
-        root = new VBox(10, houseTable, nameField, addressField, rentPriceField, isRentedCheckBox, addButton, updateButton, deleteButton, clearSelectionButton, navigationButton);
+        root = new VBox(10, rentedFilter, houseTable, nameField, addressField, rentPriceField, isRentedCheckBox, addButton, updateButton, deleteButton, clearSelectionButton, navigationButton);
     }
 
     // Get the main view layout (VBox)
@@ -211,10 +220,26 @@ public class HouseView {
 
     // Refresh the table after adding, updating, or deleting houses
     private void refreshTable() {
-        houseTable.setItems(FXCollections.observableArrayList(houseController.getAllHouses()));
+        allHouses.setAll(houseController.getAllHouses());
+        applyFilters("All");
     }
 
-    // Clear input fields
+    // Apply filters to the table based on rented status
+    private void applyFilters(String rentedStatus) {
+        ObservableList<House> filteredHouses = FXCollections.observableArrayList();
+
+        for (House house : allHouses) {
+            if ("All".equals(rentedStatus) ||
+                    ("Rented".equals(rentedStatus) && house.isRented()) ||
+                    ("Not Rented".equals(rentedStatus) && !house.isRented())) {
+                filteredHouses.add(house);
+            }
+        }
+
+        houseTable.setItems(filteredHouses);
+    }
+
+    // Clear the input fields
     private void clearFields(TextField nameField, TextField addressField, TextField rentPriceField, CheckBox isRentedCheckBox) {
         nameField.clear();
         addressField.clear();
@@ -222,20 +247,18 @@ public class HouseView {
         isRentedCheckBox.setSelected(false);
     }
 
-    // Show an error alert
+    // Show an error message
     private void showError(String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
-        alert.setHeaderText(null);
+        alert.setHeaderText("Error");
         alert.setContentText(message);
         alert.showAndWait();
     }
 
-    // Show an info alert
+    // Show an info message
     private void showInfo(String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Information");
-        alert.setHeaderText(null);
+        alert.setHeaderText("Information");
         alert.setContentText(message);
         alert.showAndWait();
     }
