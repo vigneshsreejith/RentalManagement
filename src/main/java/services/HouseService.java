@@ -4,28 +4,32 @@ import database.DatabaseConnection;
 import models.House;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class HouseService {
-    public List<House> getAllHouses() throws SQLException {
+    public List<House> getAllHouses(String currentUser) throws SQLException {
         List<House> houses = new ArrayList<>();
         String query = "SELECT * FROM houses";
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
             while (rs.next()) {
+                String tenantIdsString = rs.getString("tenant_ids");
+                boolean isInterested = false;
+                if (tenantIdsString != null && !tenantIdsString.isEmpty()) {
+                    // Convert the array to a Set for fast lookups
+                    Set<String> tenantIdsSet = new HashSet<>(Arrays.asList(tenantIdsString.split(",")));
+
+                    // Check if tenantName exists in the set
+                    isInterested = tenantIdsSet.contains(currentUser.trim());
+                }
                 houses.add(new House(
                         rs.getInt("id"),
                         rs.getString("name"),
                         rs.getString("address"),
                         rs.getDouble("rentPrice"),
                         rs.getBoolean("isRented"),
-                        rs.getBoolean("isInterested")
-
-
+                        isInterested
                 ));
             }
         }
@@ -99,45 +103,32 @@ public class HouseService {
         String updateQuery = "UPDATE houses SET isInterested = TRUE, tenant_ids = ? WHERE id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement getStmt = conn.prepareStatement(getTenantIdsQuery)) {
+             PreparedStatement getStmt = conn.prepareStatement(getTenantIdsQuery);
+             PreparedStatement updateStmt = conn.prepareStatement(updateQuery)) {
 
-            // Retrieve existing tenantIds
+            // Step 1: Retrieve existing tenant_ids
             getStmt.setInt(1, houseId);
             try (ResultSet rs = getStmt.executeQuery()) {
+                LinkedHashSet<String> tenantIdsSet = new LinkedHashSet<>();
                 if (rs.next()) {
                     String tenantIdsString = rs.getString("tenant_ids");
-                    Set<String> tenantIdsSet = getStringSet(tenantId, tenantIdsString);
 
-                    // Convert the set back to a comma-separated string
-                    String updatedTenantIds = String.join(",", tenantIdsSet);
-
-                    // Now update the house record with the new tenant_ids and set isInterested to TRUE
-                    try (PreparedStatement updateStmt = conn.prepareStatement(updateQuery)) {
-                        updateStmt.setString(1, updatedTenantIds);
-                        updateStmt.setInt(2, houseId);
-                        updateStmt.executeUpdate();
+                    // Step 2: Parse tenant IDs into a LinkedHashSet to preserve order
+                    if (tenantIdsString != null && !tenantIdsString.isEmpty()) {
+                        String[] tenantIdsArray = tenantIdsString.split(",");
+                        tenantIdsSet.addAll(Arrays.asList(tenantIdsArray));
                     }
-                } else {
-                    // Handle case where house with houseId does not exist
-                    System.out.println("House with ID " + houseId + " not found.");
+
+                    // Step 3: Add the new tenant ID if not already present
+                    tenantIdsSet.add(tenantId);
                 }
+
+                // Step 4: Update the database with the ordered tenant IDs
+                String updatedTenantIds = String.join(",", tenantIdsSet);
+                updateStmt.setString(1, updatedTenantIds);
+                updateStmt.setInt(2, houseId);
+                updateStmt.executeUpdate();
             }
         }
-}
-
-    private static Set<String> getStringSet(String tenantId, String tenantIdsString) {
-        Set<String> tenantIdsSet = new HashSet<>();
-
-        // If tenantIds is not empty, split the string into a Set
-        if (tenantIdsString != null && !tenantIdsString.isEmpty()) {
-            String[] tenantIdsArray = tenantIdsString.split(",");
-            for (String tenant : tenantIdsArray) {
-                tenantIdsSet.add(tenant.trim());  // Add each tenantId to the set (duplicate values will be discarded)
-            }
-        }
-
-        // Add the new tenantId only if it doesn't exist in the set
-        tenantIdsSet.add(tenantId);
-        return tenantIdsSet;
     }
 }

@@ -22,7 +22,7 @@ public class HouseController {
     // Get all houses (both tenants and landlords can view)
     public List<House> getAllHouses() {
         try {
-            return houseService.getAllHouses();
+            return houseService.getAllHouses(currentUser.getUsername());
         } catch (SQLException e) {
             e.printStackTrace();
             return null;
