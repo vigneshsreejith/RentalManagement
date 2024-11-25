@@ -37,7 +37,7 @@ public class HouseController {
 
         try {
             if (houseService.isNameUnique(name)) {
-                House house = new House(0, name, address, rentPrice, isRented);
+                House house = new House(0, name, address, rentPrice, isRented, false);
                 houseService.addHouse(house);
                 return "House added successfully.";
             } else {
@@ -57,7 +57,7 @@ public class HouseController {
 
         try {
             if (houseService.isNameUniqueForUpdate(id, name)) {
-                House house = new House(id, name, address, rentPrice, isRented);
+                House house = new House(id, name, address, rentPrice, isRented, false);
                 houseService.updateHouse(house);
                 return "House updated successfully.";
             } else {
@@ -81,6 +81,21 @@ public class HouseController {
         } catch (SQLException e) {
             e.printStackTrace();
             return "Error: Unable to delete house.";
+        }
+    }
+
+    // Mark a house as interested (only tenants can do this)
+    public String markInterest(int houseId) {
+        if (!(currentUser instanceof Tenant)) {
+            return "Error: Only tenants can mark houses as interested.";
+        }
+
+        try {
+            houseService.markInterest(houseId);
+            return "House marked as interested.";
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "Error: Unable to mark interest.";
         }
     }
 }

@@ -20,7 +20,10 @@ public class HouseService {
                         rs.getString("name"),
                         rs.getString("address"),
                         rs.getDouble("rentPrice"),
-                        rs.getBoolean("isRented")
+                        rs.getBoolean("isRented"),
+                        rs.getBoolean("isInterested")
+
+
                 ));
             }
         }
@@ -86,5 +89,16 @@ public class HouseService {
             }
         }
         return false;
+    }
+
+    // Mark a house as interested
+    public void markInterest(int houseId) throws SQLException {
+        String query = "UPDATE houses SET isInterested = TRUE WHERE id = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, houseId);
+            stmt.executeUpdate();
+        }
     }
 }

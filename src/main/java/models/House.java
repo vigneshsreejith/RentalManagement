@@ -6,13 +6,15 @@ public class House {
     private String address;
     private double rentPrice;
     private boolean isRented;
+    private boolean isInterested; // Added field for "I am interested"
 
-    public House(int id, String name, String address, double rentPrice, boolean isRented) {
+    public House(int id, String name, String address, double rentPrice, boolean isRented, boolean isInterested) {
         this.id = id;
         this.name = name;
         this.address = address;
         this.rentPrice = rentPrice;
         this.isRented = isRented;
+        this.isInterested = isInterested;
     }
 
     // Getters and setters
@@ -54,5 +56,13 @@ public class House {
 
     public void setRented(boolean rented) {
         isRented = rented;
+    }
+
+    public boolean isInterested() {
+        return isInterested;
+    }
+
+    public void setInterested(boolean interested) {
+        isInterested = interested;
     }
 }

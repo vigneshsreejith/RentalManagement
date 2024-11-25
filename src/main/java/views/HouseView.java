@@ -58,8 +58,11 @@ public class HouseView {
         TableColumn<House, Boolean> isRentedColumn = new TableColumn<>("Rented");
         isRentedColumn.setCellValueFactory(cellData -> new SimpleObjectProperty<>(cellData.getValue().isRented()));
 
+        TableColumn<House, Boolean> isInterestedColumn = new TableColumn<>("Interested");
+        isInterestedColumn.setCellValueFactory(cellData -> new SimpleObjectProperty<>(cellData.getValue().isInterested()));
+
         // Add columns to the TableView
-        houseTable.getColumns().addAll(nameColumn, addressColumn, rentPriceColumn, isRentedColumn);
+        houseTable.getColumns().addAll(nameColumn, addressColumn, rentPriceColumn, isRentedColumn, isInterestedColumn);
 
         // Set data for the table
         houseTable.setItems(allHouses);
@@ -205,8 +208,28 @@ public class HouseView {
             primaryStage.setScene(loginScene);
             primaryStage.setTitle("Login");
         });
+
+        Button interestedButton = new Button("I am Interested");
+
+        // Enable "Interested" button only for tenants
+        if ("TENANT".equalsIgnoreCase(currentUserRole)) {
+            interestedButton.setVisible(true);
+
+            interestedButton.setOnAction(event -> {
+                House selectedHouse = houseTable.getSelectionModel().getSelectedItem();
+                if (selectedHouse != null) {
+                    String result = houseController.markInterest(selectedHouse.getId());
+                    refreshTable();  // Refresh table to show updated status
+                    showInfo(result); // Show success message
+                } else {
+                    showError("Please select a house to mark as interested.");
+                }
+            });
+        } else {
+            interestedButton.setVisible(false);
+        }
         // Set up the root layout
-        root = new VBox(10, rentedFilter, houseTable, nameField, addressField, rentPriceField, isRentedCheckBox, addButton, updateButton, deleteButton, clearSelectionButton, navigationButton, logoutButton);
+        root = new VBox(10, rentedFilter, houseTable, nameField, addressField, rentPriceField, isRentedCheckBox, addButton, updateButton, deleteButton, clearSelectionButton, interestedButton, navigationButton, logoutButton);
     }
 
     public VBox getView() {
