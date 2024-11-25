@@ -91,7 +91,7 @@ public class HouseController {
         }
 
         try {
-            houseService.markInterest(houseId);
+            houseService.markInterest(houseId, currentUser.getUsername());
             return "House marked as interested.";
         } catch (SQLException e) {
             e.printStackTrace();

@@ -1,5 +1,8 @@
 package models;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class House {
     private int id;
     private String name;       // Added field
@@ -7,6 +10,7 @@ public class House {
     private double rentPrice;
     private boolean isRented;
     private boolean isInterested; // Added field for "I am interested"
+    private Set<Integer> tenantIds; // New field for tenant IDs
 
     public House(int id, String name, String address, double rentPrice, boolean isRented, boolean isInterested) {
         this.id = id;
@@ -15,6 +19,7 @@ public class House {
         this.rentPrice = rentPrice;
         this.isRented = isRented;
         this.isInterested = isInterested;
+        this.tenantIds = new HashSet<>(); // Initialize an empty set
     }
 
     // Getters and setters
@@ -64,5 +69,13 @@ public class House {
 
     public void setInterested(boolean interested) {
         isInterested = interested;
+    }
+
+    public Set<Integer> getTenantIds() {
+        return tenantIds;
+    }
+
+    public void setTenantIds(Set<Integer> tenantIds) {
+        this.tenantIds = tenantIds;
     }
 }
