@@ -12,7 +12,6 @@ public class DatabaseConnection {
     static {
         try {
             // Explicitly load the MySQL JDBC driver
-            System.out.println("Classpath: " + System.getProperty("java.class.path"));
             Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e) {
             // Handle the case when the MySQL JDBC driver is not found

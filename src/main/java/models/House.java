@@ -10,15 +10,17 @@ public class House {
     private double rentPrice;
     private boolean isRented;
     private boolean isInterested; // Added field for "I am interested"
-    private Set<Integer> tenantIds; // New field for tenant IDs
+    private Set<Integer> tenantIds;// New field for tenant IDs
+    private boolean isApproved; // Added field for "I am interested"
 
-    public House(int id, String name, String address, double rentPrice, boolean isRented, boolean isInterested) {
+    public House(int id, String name, String address, double rentPrice, boolean isRented, boolean isInterested, boolean isApproved) {
         this.id = id;
         this.name = name;
         this.address = address;
         this.rentPrice = rentPrice;
         this.isRented = isRented;
         this.isInterested = isInterested;
+        this.isApproved = isApproved;
         this.tenantIds = new HashSet<>(); // Initialize an empty set
     }
 
@@ -77,5 +79,13 @@ public class House {
 
     public void setTenantIds(Set<Integer> tenantIds) {
         this.tenantIds = tenantIds;
+    }
+
+    public boolean isApproved() {
+        return isApproved;
+    }
+
+    public void setApproved(boolean approved) {
+        isApproved = approved;
     }
 }

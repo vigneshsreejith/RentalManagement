@@ -64,8 +64,18 @@ public class HouseView {
         TableColumn<House, Boolean> isInterestedColumn = new TableColumn<>("Interested");
         isInterestedColumn.setCellValueFactory(cellData -> new SimpleObjectProperty<>(cellData.getValue().isInterested()));
 
+        TableColumn<House, Boolean> isApprovedColumn = new TableColumn<>("Approved");
+        isApprovedColumn.setCellValueFactory(cellData -> new SimpleObjectProperty<>(cellData.getValue().isApproved()));
+        boolean isLandlord = "LANDLORD".equalsIgnoreCase(currentUserRole);
+
+
         // Add columns to the TableView
-        houseTable.getColumns().addAll(nameColumn, addressColumn, rentPriceColumn, isRentedColumn, isInterestedColumn);
+        if(isLandlord){
+            houseTable.getColumns().addAll(nameColumn, addressColumn, rentPriceColumn, isRentedColumn);
+        } else {
+            houseTable.getColumns().addAll(nameColumn, addressColumn, rentPriceColumn, isRentedColumn, isInterestedColumn, isApprovedColumn);
+
+        }
 
         // Set data for the table
         houseTable.setItems(allHouses);
@@ -93,7 +103,6 @@ public class HouseView {
         tenantDropdown.setPromptText("Select Tenants");
         tenantDropdown.setMinWidth(200);
         // Set roles: Enable/disable buttons based on the current role
-        boolean isLandlord = "LANDLORD".equalsIgnoreCase(currentUserRole);
         addButton.setDisable(false);
         updateButton.setDisable(true);
         deleteButton.setDisable(true);
@@ -104,9 +113,9 @@ public class HouseView {
             addressField.setVisible(false);
             rentPriceField.setVisible(false);
             isRentedCheckBox.setVisible(false);
-            addButton.setDisable(true);
-            updateButton.setDisable(true);
-            deleteButton.setDisable(true);
+            addButton.setVisible(false);
+            updateButton.setVisible(false);
+            deleteButton.setVisible(false);
             tenantDropdown.setVisible(false);
             approveButton.setVisible(false);
         }
@@ -206,7 +215,6 @@ public class HouseView {
                 List<String> tenants = houseController.getTenantIds(newSelection.getId());
                 //approveButton.setDisable(false);
                 if(!tenants.isEmpty()){
-                    System.out.println(newSelection.getId());
                     ObservableList<String> tenantList = FXCollections.observableArrayList(tenants);
                     tenantDropdown.setItems(tenantList);
                     tenantDropdown.setVisible(true);

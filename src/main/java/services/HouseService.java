@@ -15,7 +15,9 @@ public class HouseService {
              ResultSet rs = stmt.executeQuery(query)) {
             while (rs.next()) {
                 String tenantIdsString = rs.getString("tenant_ids");
+                String approvedListString = rs.getString("approved_list");
                 boolean isInterested = false;
+                boolean isApproved = false;
                 if (tenantIdsString != null && !tenantIdsString.isEmpty()) {
                     // Convert the array to a Set for fast lookups
                     Set<String> tenantIdsSet = new HashSet<>(Arrays.asList(tenantIdsString.split(",")));
@@ -23,13 +25,23 @@ public class HouseService {
                     // Check if tenantName exists in the set
                     isInterested = tenantIdsSet.contains(currentUser.trim());
                 }
+                if (approvedListString != null && !approvedListString.isEmpty()) {
+                    // Convert the array to a Set for fast lookups
+                    Set<String> approvedListSet = new HashSet<>(Arrays.asList(approvedListString.split(",")));
+
+                    // Check if tenantName exists in the set
+                    isApproved = approvedListSet.contains(currentUser.trim());
+                    isInterested = true;
+                }
+
                 houses.add(new House(
                         rs.getInt("id"),
                         rs.getString("name"),
                         rs.getString("address"),
                         rs.getDouble("rentPrice"),
                         rs.getBoolean("isRented"),
-                        isInterested
+                        isInterested,
+                        isApproved
                 ));
             }
         }
@@ -154,7 +166,6 @@ public class HouseService {
                     }
 
                     // Step 3: remove the new tenant ID if not already present
-                    System.out.println("Removed tenant" + tenantId);
                     tenantIdsSet.remove(tenantId);
                 }
 
@@ -176,7 +187,6 @@ public class HouseService {
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 String tenantIds = rs.getString("tenant_ids");
-                System.out.println(tenantIds);
                 if(tenantIds != null && !tenantIds.isEmpty()){
                     return Arrays.asList(tenantIds.split(","));
                 }

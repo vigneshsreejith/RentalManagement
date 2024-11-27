@@ -38,7 +38,7 @@ public class HouseController {
 
         try {
             if (houseService.isNameUnique(name)) {
-                House house = new House(0, name, address, rentPrice, isRented, false);
+                House house = new House(0, name, address, rentPrice, isRented, false, false);
                 houseService.addHouse(house);
                 return "House added successfully.";
             } else {
@@ -58,7 +58,7 @@ public class HouseController {
 
         try {
             if (houseService.isNameUniqueForUpdate(id, name)) {
-                House house = new House(id, name, address, rentPrice, isRented, false);
+                House house = new House(id, name, address, rentPrice, isRented, false, false);
                 houseService.updateHouse(house);
                 return "House updated successfully.";
             } else {
