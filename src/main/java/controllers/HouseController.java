@@ -1,6 +1,7 @@
 package controllers;
 
 import models.House;
+import services.HouseOperations;
 import services.HouseService;
 import models.User;
 import models.Landlord;
@@ -11,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HouseController {
-    private final HouseService houseService;
+    private final HouseOperations houseService;
     private final User currentUser; // This will hold the current logged-in user
 
     // Constructor to initialize the HouseService and assign the current user
@@ -19,6 +20,7 @@ public class HouseController {
         this.houseService = houseService;
         this.currentUser = currentUser;
     }
+
 
     // Get all houses (both tenants and landlords can view)
     public List<House> getAllHouses() {
@@ -129,11 +131,25 @@ public class HouseController {
             return "Error: Only Landlord can approve tenants.";
         }
         try{
+            System.out.println("approve tenant in house controller" + houseId +"tenant " + approvedTenant);
             houseService.updateApprovedList(houseId, approvedTenant);
-            return "Tenant " + approvedTenant + "approved";
+            return "Tenant " + approvedTenant + " approved";
         }  catch (SQLException e) {
             e.printStackTrace();
             return "Error: Unable to approve tenant.";
         }
+    }
+
+    //recursion
+    public double calculateTotalRent(ArrayList<House> houses, int index) {
+        // Base case: If index is out of bounds, return 0
+        if (index >= houses.size()) {
+            return 0;
+        }
+        // Check if the current house is rented and include its rent price if true
+        double currentRent = houses.get(index).isRented() ? houses.get(index).getRentPrice() : 0;
+
+        // Recursive call for the rest of the list
+        return currentRent + calculateTotalRent(houses, index + 1);
     }
 }

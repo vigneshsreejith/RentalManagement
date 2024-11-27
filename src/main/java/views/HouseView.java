@@ -271,15 +271,12 @@ public class HouseView {
         // Load tenants into dropdown
         //House house = houseTable.getSelectionModel().getSelectedItem();
 
-
-        if ("LANDLORD".equalsIgnoreCase(currentUserRole)) {
-            House selectedHouse = houseTable.getSelectionModel().getSelectedItem();
-            if(selectedHouse !=null && !selectedHouse.getTenantIds().isEmpty()){
-                approveButton.setVisible(true);
-                tenantDropdown.setVisible(true);
-                approveButton.setOnAction(event -> {
+        approveButton.setOnAction(event -> {
+                    House selectedHouse = houseTable.getSelectionModel().getSelectedItem();
                     String selectedTenant = tenantDropdown.getSelectionModel().getSelectedItem();
-                    if (selectedTenant != null) {
+                    if (selectedHouse!=null && selectedTenant != null) {
+                        System.out.println("selected tenant is not null" + selectedTenant);
+                        System.out.println("selected house is not null" + selectedHouse.getId());
                         String result;// Show success message
 // Refresh table to show updated status
                         result = houseController.approveTenants(selectedHouse.getId(), selectedTenant);
@@ -290,11 +287,7 @@ public class HouseView {
                         showError("Please select a tenant to approve.");
                     }
                 });
-            } else {
-                tenantDropdown.setVisible(false);
-                approveButton.setVisible(false);
-            }
-            }
+
         // Set up the root layout
         root = new VBox(10, rentedFilter, houseTable, nameField, addressField, rentPriceField, isRentedCheckBox, addButton, updateButton, deleteButton, tenantDropdown, approveButton, clearSelectionButton, interestedButton, navigationButton, logoutButton);
     }
