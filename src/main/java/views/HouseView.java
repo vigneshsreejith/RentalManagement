@@ -12,6 +12,9 @@ import javafx.stage.Stage;
 import models.House;
 import services.LoginService;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class HouseView {
 
     private final HouseController houseController;
@@ -23,7 +26,7 @@ public class HouseView {
     private final Stage primaryStage; // Reference to primary stage
     private VBox root;
 
-    public HouseView(HouseController controller, String role, Stage primaryStage) {
+    public HouseView(HouseController controller, String role, Stage primaryStage) throws Exception {
         this.houseController = controller;
         this.houseTable = new TableView<>();
         this.navigationButton = new Button("Go to Tenant View");
@@ -36,7 +39,7 @@ public class HouseView {
         setupTable();
     }
 
-    private void setupTable() {
+    private void setupTable() throws Exception {
         // Create filter dropdown for rented status
         ChoiceBox<String> rentedFilter = new ChoiceBox<>();
         rentedFilter.getItems().addAll("All", "Rented", "Not Rented");
@@ -83,8 +86,12 @@ public class HouseView {
         Button addButton = new Button("Add House");
         Button updateButton = new Button("Update House");
         Button deleteButton = new Button("Delete House");
+        Button approveButton = new Button("Approve Tenants");
         Button clearSelectionButton = new Button("Clear Selection");
-
+        // Dropdown (ComboBox)
+        ComboBox<String> tenantDropdown = new ComboBox<>();
+        tenantDropdown.setPromptText("Select Tenants");
+        tenantDropdown.setMinWidth(200);
         // Set roles: Enable/disable buttons based on the current role
         boolean isLandlord = "LANDLORD".equalsIgnoreCase(currentUserRole);
         addButton.setDisable(false);
@@ -100,6 +107,8 @@ public class HouseView {
             addButton.setDisable(true);
             updateButton.setDisable(true);
             deleteButton.setDisable(true);
+            tenantDropdown.setVisible(false);
+            approveButton.setVisible(false);
         }
 
         // Add house logic
@@ -181,6 +190,11 @@ public class HouseView {
         // Add listener for table selection
         houseTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             if (newSelection != null && isLandlord) {
+                //set the value of dropdown to default
+                tenantDropdown.setItems(FXCollections.observableArrayList(new ArrayList<>()));
+                tenantDropdown.setVisible(false);
+                approveButton.setVisible(false);
+                //other values
                 nameField.setText(newSelection.getName());
                 addressField.setText(newSelection.getAddress());
                 rentPriceField.setText(String.valueOf(newSelection.getRentPrice()));
@@ -189,10 +203,20 @@ public class HouseView {
                 deleteButton.setDisable(false);
                 addButton.setDisable(true);
                 clearSelectionButton.setDisable(false);
+                List<String> tenants = houseController.getTenantIds(newSelection.getId());
+                //approveButton.setDisable(false);
+                if(!tenants.isEmpty()){
+                    System.out.println(newSelection.getId());
+                    ObservableList<String> tenantList = FXCollections.observableArrayList(tenants);
+                    tenantDropdown.setItems(tenantList);
+                    tenantDropdown.setVisible(true);
+                    approveButton.setVisible(true);
+                }
             } else if (newSelection == null && isLandlord) {
                 // Clear fields and reset buttons
                 clearFields(nameField, addressField, rentPriceField, isRentedCheckBox);
-
+                tenantDropdown.setVisible(false);
+                approveButton.setVisible(false);
                 addButton.setDisable(false);
                 updateButton.setDisable(true);
                 deleteButton.setDisable(true);
@@ -235,8 +259,36 @@ public class HouseView {
         } else {
             interestedButton.setVisible(false);
         }
+
+        // Load tenants into dropdown
+        //House house = houseTable.getSelectionModel().getSelectedItem();
+
+
+        if ("LANDLORD".equalsIgnoreCase(currentUserRole)) {
+            House selectedHouse = houseTable.getSelectionModel().getSelectedItem();
+            if(selectedHouse !=null && !selectedHouse.getTenantIds().isEmpty()){
+                approveButton.setVisible(true);
+                tenantDropdown.setVisible(true);
+                approveButton.setOnAction(event -> {
+                    String selectedTenant = tenantDropdown.getSelectionModel().getSelectedItem();
+                    if (selectedTenant != null) {
+                        String result;// Show success message
+// Refresh table to show updated status
+                        result = houseController.approveTenants(selectedHouse.getId(), selectedTenant);
+                        refreshTable();  // Refresh table to show updated status
+                        showInfo(result); // Show success message
+
+                    } else {
+                        showError("Please select a tenant to approve.");
+                    }
+                });
+            } else {
+                tenantDropdown.setVisible(false);
+                approveButton.setVisible(false);
+            }
+            }
         // Set up the root layout
-        root = new VBox(10, rentedFilter, houseTable, nameField, addressField, rentPriceField, isRentedCheckBox, addButton, updateButton, deleteButton, clearSelectionButton, interestedButton, navigationButton, logoutButton);
+        root = new VBox(10, rentedFilter, houseTable, nameField, addressField, rentPriceField, isRentedCheckBox, addButton, updateButton, deleteButton, tenantDropdown, approveButton, clearSelectionButton, interestedButton, navigationButton, logoutButton);
     }
 
     public VBox getView() {

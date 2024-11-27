@@ -166,4 +166,57 @@ public class HouseService {
             }
         }
     }
+
+    public List<String> getTenantIdsForHouse(int houseId) throws SQLException {
+        String query = "SELECT tenant_ids FROM houses WHERE id = ?";
+        try ( Connection connection = DatabaseConnection.getConnection();
+                PreparedStatement stmt = connection.prepareStatement(query)) {
+
+            stmt.setInt(1, houseId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                String tenantIds = rs.getString("tenant_ids");
+                System.out.println(tenantIds);
+                if(tenantIds != null && !tenantIds.isEmpty()){
+                    return Arrays.asList(tenantIds.split(","));
+                }
+            }
+        }
+        return new ArrayList<>();
+    }
+
+    public void updateApprovedList(int houseId, String tenantId) throws SQLException {
+        String getApprovedListQuery = "SELECT approved_list FROM houses WHERE id = ?";
+        String updateQuery = "UPDATE houses SET approved_list = ? WHERE id = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement getStmt = conn.prepareStatement(getApprovedListQuery);
+             PreparedStatement updateStmt = conn.prepareStatement(updateQuery)) {
+
+            // Step 1: Retrieve existing tenant_ids
+            getStmt.setInt(1, houseId);
+            try (ResultSet rs = getStmt.executeQuery()) {
+                LinkedHashSet<String> approvedListSet = new LinkedHashSet<>();
+                if (rs.next()) {
+                    String approvedListString = rs.getString("approved_list");
+
+                    // Step 2: Parse tenant IDs into a LinkedHashSet to preserve order
+                    if (approvedListString != null && !approvedListString.isEmpty()) {
+                        String[] approvalListArray = approvedListString.split(",");
+                        approvedListSet.addAll(Arrays.asList(approvalListArray));
+                    }
+
+                    // Step 3: Add the new tenant ID if not already present
+                    approvedListSet.add(tenantId);
+                }
+
+                // Step 4: Update the database with the ordered tenant IDs
+                String updatedApprovedList = String.join(",", approvedListSet);
+                updateStmt.setString(1, updatedApprovedList);
+                updateStmt.setInt(2, houseId);
+                updateStmt.executeUpdate();
+                markNotInterest(houseId, tenantId);
+            }
+        }
+    }
 }

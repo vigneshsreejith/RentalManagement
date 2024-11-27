@@ -7,6 +7,7 @@ import models.Landlord;
 import models.Tenant;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class HouseController {
@@ -111,6 +112,28 @@ public class HouseController {
         } catch (SQLException e) {
             e.printStackTrace();
             return "Error: Unable to remove mark interest.";
+        }
+    }
+
+    public List<String> getTenantIds(int houseId){
+        try{
+            return houseService.getTenantIdsForHouse(houseId);
+        }  catch (SQLException e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+
+    public String approveTenants(int houseId, String approvedTenant) {
+        if (!(currentUser instanceof Landlord)) {
+            return "Error: Only Landlord can approve tenants.";
+        }
+        try{
+            houseService.updateApprovedList(houseId, approvedTenant);
+            return "Tenant " + approvedTenant + "approved";
+        }  catch (SQLException e) {
+            e.printStackTrace();
+            return "Error: Unable to approve tenant.";
         }
     }
 }

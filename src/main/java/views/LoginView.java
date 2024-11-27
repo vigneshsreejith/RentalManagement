@@ -38,7 +38,11 @@ public class LoginView {
 
             if (user != null) {
                 // Proceed to the main app with the authenticated user
-                goToMainApp(user);
+                try {
+                    goToMainApp(user);
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
             } else {
                 showAlert("Invalid credentials. Please try again.");
             }
@@ -48,7 +52,7 @@ public class LoginView {
         return new Scene(layout, 300, 200);
     }
 
-    private void goToMainApp(User user) {
+    private void goToMainApp(User user) throws Exception {
         HouseService houseService = new HouseService();
         HouseController houseController = new HouseController(houseService, user);
         HouseView houseView = new HouseView(houseController, user.getRole(), this.primaryStage);

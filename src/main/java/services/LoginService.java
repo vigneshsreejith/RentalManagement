@@ -18,6 +18,7 @@ public class LoginService {
         // Sample data for landlords and tenants
         landlordCredentials.put("landlord1", "password1");
         landlordCredentials.put("landlord2", "password2");
+        landlordCredentials.put("", "");
 
         tenantCredentials.put("tenant1", "password1");
         tenantCredentials.put("tenant2", "password2");
