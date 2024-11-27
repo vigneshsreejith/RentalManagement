@@ -98,6 +98,8 @@ public class HouseView {
         Button deleteButton = new Button("Delete House");
         Button approveButton = new Button("Approve Tenants");
         Button clearSelectionButton = new Button("Clear Selection");
+        Button calculateRentButton = new Button("Calculate Total Rent");
+
         // Dropdown (ComboBox)
         ComboBox<String> tenantDropdown = new ComboBox<>();
         tenantDropdown.setPromptText("Select Tenants");
@@ -118,7 +120,13 @@ public class HouseView {
             deleteButton.setVisible(false);
             tenantDropdown.setVisible(false);
             approveButton.setVisible(false);
+            calculateRentButton.setVisible(false);
         }
+        //recursion example
+        calculateRentButton.setOnAction(event -> {
+            double totalRent = houseController.calculateTotalRent(new ArrayList<>(allHouses), 0); // Pass houses and start index
+            showInfo("Total Rent for Rented Houses: $" + totalRent);
+        });
 
         // Add house logic
         addButton.setOnAction(event -> {
@@ -289,7 +297,7 @@ public class HouseView {
                 });
 
         // Set up the root layout
-        root = new VBox(10, rentedFilter, houseTable, nameField, addressField, rentPriceField, isRentedCheckBox, addButton, updateButton, deleteButton, tenantDropdown, approveButton, clearSelectionButton, interestedButton, navigationButton, logoutButton);
+        root = new VBox(10, rentedFilter, houseTable, nameField, addressField, rentPriceField, isRentedCheckBox, addButton, updateButton, deleteButton, tenantDropdown, approveButton, clearSelectionButton, interestedButton, calculateRentButton, navigationButton, logoutButton);
     }
 
     public VBox getView() {
