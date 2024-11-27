@@ -209,7 +209,7 @@ public class HouseView {
             primaryStage.setTitle("Login");
         });
 
-        Button interestedButton = new Button("I am Interested");
+        Button interestedButton = new Button("Update Interest state");
 
         // Enable "Interested" button only for tenants
         if ("TENANT".equalsIgnoreCase(currentUserRole)) {
@@ -218,9 +218,16 @@ public class HouseView {
             interestedButton.setOnAction(event -> {
                 House selectedHouse = houseTable.getSelectionModel().getSelectedItem();
                 if (selectedHouse != null) {
-                    String result = houseController.markInterest(selectedHouse.getId());
+                    String result;// Show success message
+// Refresh table to show updated status
+                    if(selectedHouse.isInterested()){
+                        result = houseController.removeMarkInterest(selectedHouse.getId());
+                    } else {
+                        result = houseController.markInterest(selectedHouse.getId());
+                    }
                     refreshTable();  // Refresh table to show updated status
                     showInfo(result); // Show success message
+
                 } else {
                     showError("Please select a house to mark as interested.");
                 }

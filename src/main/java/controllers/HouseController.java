@@ -98,4 +98,19 @@ public class HouseController {
             return "Error: Unable to mark interest.";
         }
     }
+
+    // Mark a house as interested (only tenants can do this)
+    public String removeMarkInterest(int houseId) {
+        if (!(currentUser instanceof Tenant)) {
+            return "Error: Only tenants can mark houses as not interested.";
+        }
+
+        try {
+            houseService.markNotInterest(houseId, currentUser.getUsername());
+            return "House marked as not interested.";
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "Error: Unable to remove mark interest.";
+        }
+    }
 }

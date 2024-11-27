@@ -131,4 +131,39 @@ public class HouseService {
             }
         }
     }
+
+    public void markNotInterest(int houseId, String tenantId) throws SQLException {
+        String getTenantIdsQuery = "SELECT tenant_ids FROM houses WHERE id = ?";
+        String updateQuery = "UPDATE houses SET isInterested = TRUE, tenant_ids = ? WHERE id = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement getStmt = conn.prepareStatement(getTenantIdsQuery);
+             PreparedStatement updateStmt = conn.prepareStatement(updateQuery)) {
+
+            // Step 1: Retrieve existing tenant_ids
+            getStmt.setInt(1, houseId);
+            try (ResultSet rs = getStmt.executeQuery()) {
+                LinkedHashSet<String> tenantIdsSet = new LinkedHashSet<>();
+                if (rs.next()) {
+                    String tenantIdsString = rs.getString("tenant_ids");
+
+                    // Step 2: Parse tenant IDs into a LinkedHashSet to preserve order
+                    if (tenantIdsString != null && !tenantIdsString.isEmpty()) {
+                        String[] tenantIdsArray = tenantIdsString.split(",");
+                        tenantIdsSet.addAll(Arrays.asList(tenantIdsArray));
+                    }
+
+                    // Step 3: remove the new tenant ID if not already present
+                    System.out.println("Removed tenant" + tenantId);
+                    tenantIdsSet.remove(tenantId);
+                }
+
+                // Step 4: Update the database with the ordered tenant IDs
+                String updatedTenantIds = String.join(",", tenantIdsSet);
+                updateStmt.setString(1, updatedTenantIds);
+                updateStmt.setInt(2, houseId);
+                updateStmt.executeUpdate();
+            }
+        }
+    }
 }
